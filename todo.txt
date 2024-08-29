@@ -1,0 +1,4 @@
+1. Random accounts pick []
+2. Range for all metrics - choose ramdom number to deliver []
+3. Change Name (csv) and profile (folder) []
+4. Separate script for Sessions generator [x]

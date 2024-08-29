@@ -1,0 +1,6 @@
+.venv
+.vscode
+__pycache__
+sessions
+insta_sessions
+*.rar
