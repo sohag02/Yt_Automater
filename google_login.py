@@ -5,8 +5,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.webdriver import Chrome, ChromeOptions
-from selenium.common.exceptions import TimeoutException
+from selenium.webdriver import ChromeOptions
 import undetected_chromedriver as uc
 import logging
 import csv
@@ -18,6 +17,12 @@ sessions = 0
 
 cwd = os.getcwd()
 profile_directory = f'{cwd}\\profiles'
+
+def is_already_generated(email):
+    for file in os.listdir(profile_directory):
+        if file.startswith(email):
+            return True
+    return False
 
 def suppress_exception_in_del(uc):
     old_del = uc.Chrome.__del__
@@ -89,8 +94,11 @@ def login(email, password):
             driver.quit()
         except:
             pass
-        shutil.rmtree(profile_path)
-            # time.sleep(2)
+        time.sleep(2)
+        try:
+            shutil.rmtree(profile_path)
+        except:
+            logging.error(f"\033[91mFailed to remove profile folder for {email}. Please remove manually [IMPORTANT]\033[0m")
 
 def calc_size(path):
     size = 0
@@ -112,12 +120,15 @@ def main():
         logging.info("Creating Profile Directory...")
         os.mkdir(profile_directory)
     logging.info(f"Profiles will be generated in {profile_directory}")
-    with open('gmailacount.csv', 'r') as f:
+    with open('data/gmail.csv', 'r') as f:
         reader = csv.reader(f)
         next(reader) # Skip header
         for row in reader:
             email = row[0]
             password = row[1]
+            if is_already_generated(email):
+                logging.info(f"Skipping {email} since it is already generated")
+                continue
             login(email, password)
             
     logging.info(f"Total profiles generated: {sessions}")
