@@ -1,4 +1,9 @@
-1. Random accounts pick []
-2. Range for all metrics - choose ramdom number to deliver []
-3. Change Name (csv) and profile (folder) []
-4. Separate script for Sessions generator [x]
+1. Random accounts pick [x]
+2. Range for all metrics - choose ramdom number to deliver [x]
+3. Change Name (csv) and profile pic (folder) []
+4. Separate script for Profile generator [x]
+5. Go to video by search - search keyword given in config
+6. Random user agent
+7. proxy - datacenter and rotating
+8. Human Activity - Random play/pause, scroll
+9. Pick Random but Unique set of accounts for each video to like/comment/subscribe

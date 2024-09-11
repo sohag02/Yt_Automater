@@ -8,8 +8,8 @@ from driver import setup_driver
 
 logger = logging.getLogger(__name__)
 
-def process_video(email, password, link, watch_time):
-    with setup_driver(email, password, headless=False) as driver:
+def process_video(profile, link, watch_time):
+    with setup_driver(profile, headless=False) as driver:
         driver.get(link)
         like(driver)
         subscribe(driver)
@@ -38,4 +38,4 @@ def monitor(driver:Chrome, username, watch_time, accounts, threads=1):
             logging.info(f"Processing {shorts[0]}")
             
             with Pool(int(threads)) as pool:
-                pool.starmap(process_video, [(cred['email'], cred['password'], shorts[0], watch_time) for cred in accounts])
+                pool.starmap(process_video, [(cred, shorts[0], watch_time) for cred in accounts])

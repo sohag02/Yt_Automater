@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def comment(driver:Chrome, comment=None):
     if not comment:
-        with open('comments.json') as f:
+        with open('data/comments.json') as f:
             comments = json.load(f)['comments']
         comment = random.choice(comments)
 
@@ -99,6 +99,9 @@ def subscribe(driver):
 
 def share_instagram(link, shares=1):
     try:
+        if len(sessions) == 0:
+            logging.error("No Instagram sessions found")
+            return
         options = ChromeOptions()
         options.add_argument('--headless')
         options.add_argument("--mute-audio")
@@ -107,9 +110,6 @@ def share_instagram(link, shares=1):
         options.add_argument('--log-level=3')  # Suppress logs
         driver = Chrome(options=options)
         sessions = os.listdir('insta_sessions')
-        if len(sessions) == 0:
-            logging.error("No Instagram sessions found")
-            return
         cookie_file = random.choice(sessions)
         driver.get('https://www.instagram.com/')
         with open(f'insta_sessions/{cookie_file}', 'rb') as f:
@@ -119,7 +119,7 @@ def share_instagram(link, shares=1):
         driver.refresh()
         logging.info(f"Logged in to instagram with {cookie_file}")
         time.sleep(5)
-        with open('instagram.csv', 'r') as f:
+        with open('data/instagram.csv', 'r') as f:
             reader = csv.reader(f)
             usernames = [row[0] for row in list(reader)]
             logging.info(f"Found {len(usernames)} Instagram Usernames")
@@ -160,5 +160,7 @@ def share_instagram(link, shares=1):
     except:
         logging.error(f"Failed to share with instagram")
     finally:
-        driver.quit()
-
+        try:
+            driver.quit()
+        except:
+            pass

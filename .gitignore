@@ -3,4 +3,15 @@
 __pycache__
 sessions
 insta_sessions
+new_sessions
+*.pkl
 *.rar
+profiles
+node_modules
+.env
+venv
+*.log
+ui
+test.py
+internal
+Photos

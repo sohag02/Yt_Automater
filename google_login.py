@@ -1,3 +1,5 @@
+import os
+import shutil
 import time
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -7,14 +9,15 @@ from selenium.webdriver import Chrome, ChromeOptions
 from selenium.common.exceptions import TimeoutException
 import undetected_chromedriver as uc
 import logging
-import pickle
 import csv
 
-# logger = logging.getLogger(__name__)
 logging.getLogger("undetected_chromedriver").setLevel(logging.ERROR)
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 sessions = 0
+
+cwd = os.getcwd()
+profile_directory = f'{cwd}\\profiles'
 
 def suppress_exception_in_del(uc):
     old_del = uc.Chrome.__del__
@@ -27,9 +30,24 @@ def suppress_exception_in_del(uc):
     
     setattr(uc.Chrome, '__del__', new_del)
 
-def login(driver:Chrome, email, password):
+def login(email, password):
     global sessions
+    driver = None
     try:
+        options = ChromeOptions()
+        options.add_argument("--disable-notifications")
+        options.add_argument("--disable-popup-blocking")
+        options.add_argument('--log-level=3')  # Suppress logs
+
+        profile_path = f"{profile_directory}\\{email}"
+        if not os.path.exists(profile_path):
+            os.mkdir(profile_path)
+        
+        options.add_argument(f"--user-data-dir={profile_path}")
+        options.add_argument("--disable-cache")
+        options.add_argument("--disk-cache-size=0")
+
+        driver = uc.Chrome(options=options)
         driver.get("https://accounts.google.com")
 
         # Email
@@ -56,35 +74,55 @@ def login(driver:Chrome, email, password):
             (By.CSS_SELECTOR, '[aria-label="Change profile photo"]')
         ))
 
-        # Save cookies
-        cookies = driver.get_cookies()
-        with open(f'new_sessions/{email}.pkl', 'wb') as f:
-            pickle.dump(cookies, f)
-        logging.info(f"Successfully Generated Session for {email}")
+        logging.info(f"Successfully logged in with {email}")
+        driver.quit()
+
+        # Zip Profile
+        logging.info(f"Zipping Profile for {email}...")
+        shutil.make_archive(profile_path, 'zip', profile_path)
+        logging.info(f"Successfully Generated Profile for {email}")
         sessions += 1
-    except:
-        logging.error(f"Failed to login with {email}")
+    except Exception as e:
+        logging.error(f"Failed to login with {email} : {e.__class__.__name__}")
     finally:
-        driver.delete_all_cookies()
-        driver.get("https://accounts.google.com")
-        driver.delete_all_cookies()
+        try:
+            driver.quit()
+        except:
+            pass
+        shutil.rmtree(profile_path)
+            # time.sleep(2)
+
+def calc_size(path):
+    size = 0
+    for root, dirs, files in os.walk(path):
+        for f in files:
+            fp = os.path.join(root, f)
+            size += os.path.getsize(fp)
+    to_ret = size / (1024 * 1024)
+    unit = "MB"
+    if to_ret > 1024:
+        to_ret = to_ret / 1024
+        unit = "GB"
+    return to_ret, unit
 
 def main():
     suppress_exception_in_del(uc)
-    options = ChromeOptions()
-    options.add_argument("--disable-notifications")
-    options.add_argument("--disable-popup-blocking")
-    options.add_argument('--log-level=3')  # Suppress logs
-    driver = uc.Chrome(options=options)
+    logging.info("Starting Profile Genetator...")
+    if not os.path.exists(profile_directory):
+        logging.info("Creating Profile Directory...")
+        os.mkdir(profile_directory)
+    logging.info(f"Profiles will be generated in {profile_directory}")
     with open('gmailacount.csv', 'r') as f:
         reader = csv.reader(f)
         next(reader) # Skip header
         for row in reader:
             email = row[0]
             password = row[1]
-            login(driver, email, password)
-        driver.quit()
-        logging.info(f"Total sessions generated: {sessions}")
+            login(email, password)
+            
+    logging.info(f"Total profiles generated: {sessions}")
+    size, unit = calc_size(profile_directory)
+    logging.info(f"Total size of all profiles: {round(size, 2)} {unit}")
         
 if __name__ == "__main__":
     main()
