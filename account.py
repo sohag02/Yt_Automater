@@ -45,6 +45,7 @@ def get_profile_pic(gender):
     for photo in photos:
         if photo.startswith(gender):
             return f"{os.getcwd()}\\Photos\\{photo}"
+    return None
     
 def change_profile_pic(driver: Chrome, gender):
     logging.info(f"Changing Profile Pic for {driver.email}")
