@@ -3,8 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver import Chrome
 from utils import wait_for_page_load, scroll_down, change_search_query
 
-def 
-(driver: Chrome, keywords, username):
+def search_channel(driver: Chrome, keywords, username):
     channel_filter = "&sp=EgIQAg%253D%253D"
     driver.get(
         f"https://www.youtube.com/results?search_query={keywords}"+channel_filter)

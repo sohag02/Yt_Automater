@@ -3,7 +3,7 @@ import random
 from actions import comment, like, subscribe, share_instagram
 from driver import setup_driver
 import time
-from multiprocessing import Pool, Manager
+from multiprocessing import Pool
 from config import Config
 import csv
 from utils import get_links, human_activity, divide_into_n_parts, play
@@ -12,6 +12,7 @@ from proxy import check_proxies, get_proxy
 import logging
 from selenium.webdriver import Chrome
 from search import search_channel, search_video
+from proxy_extension import create_proxy_auth_extension
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(filename)-10s - %(levelname)-5s - %(message)s',
@@ -25,17 +26,18 @@ config = Config()
 
 if config.use_proxy:
     if config.rotating_proxies:
-        proxy = f"{config.ip}:{config.port}"
+        extension = create_proxy_auth_extension(config.host, config.port, config.proxy_username, config.proxy_password, "internal")
+        # proxy = None
     else:
         check_proxies(config.proxy_file)
 
 def get_proxies():
-    with open("working_proxies.txt", "r") as f:
+    with open("internal/working_proxies.txt", "r") as f:
         proxies = f.readlines()
     return proxies
 
 proxies = []
-if config.use_proxy:
+if config.use_proxy and not config.rotating_proxies:
     proxies = get_proxies()
 
 # counts
@@ -132,7 +134,7 @@ def process_batch(func: callable, accounts_batch, size=5):
     with Pool(size) as pool:
         if config.use_proxy:
             if config.rotating_proxies:
-                proxy = f"{config.ip}:{config.port}:{config.proxy_username}:{config.proxy_password}"
+                proxy = extension #f"{config.host}:{config.port}:{config.proxy_username}:{config.proxy_password}"
                 proxies_batch = [proxy for _ in range(len(accounts_batch))]
             else:
                 proxies_batch = [proxies.pop(0).strip() for _ in range(len(accounts_batch))]
@@ -144,7 +146,10 @@ def process_batch(func: callable, accounts_batch, size=5):
 
 def main():
     proxy = None
-    if config.use_proxy:
+    if config.use_proxy and not config.rotating_proxies:
+        if len(proxies) == 0:
+            logging.error("No Working Proxies found. Use valid proxies or disable proxy.")
+            exit()
         proxy = proxies[0].strip()
         proxies.pop(0)
 

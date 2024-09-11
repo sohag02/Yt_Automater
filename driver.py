@@ -4,11 +4,10 @@ import time
 from contextlib import contextmanager
 import shutil
 import undetected_chromedriver as uc
-from selenium.webdriver import ChromeOptions
+from selenium.webdriver import ChromeOptions, Chrome
 from typing import Union
 from utils import isSetup
 from account import setup_account
-
 
 cwd = os.getcwd()
 profile_directory = f'{cwd}\\profiles'
@@ -18,13 +17,22 @@ logging.getLogger("undetected_chromedriver").setLevel(logging.ERROR)
 
 @contextmanager
 def setup_driver(profile: Union[str, None] = None, headless=False, proxy=None):
-    logging.info(f"Using Profile: {profile} {f"| Proxy: {proxy}" if proxy else ""}")
+    if proxy:
+        proxy_type = "Rotating" if "zip" in proxy else proxy
+        logging.info(f"Using Profile: {profile} | Proxy: {proxy_type}")
+    else:
+        logging.info(f"Using Profile: {profile}")
+
     if profile: shutil.unpack_archive(f'{profile_directory}\\{profile}.zip', f'{profile_directory}\\{profile}')
     options = ChromeOptions()
     if headless:
         options.add_argument("--headless")
     if proxy:
-        options.add_argument(f"--proxy-server={proxy}")
+        if 'zip' in proxy:
+            extension_path = f"{os.path.join(os.getcwd(), proxy.replace('.zip', ''))}"
+            options.add_argument(f"--load-extension={extension_path}")
+        else:
+            options.add_argument(f"--proxy-server={proxy}")
     options.add_argument("--mute-audio")
     options.add_argument("--disable-notifications")
     options.add_argument("--disable-popup-blocking")

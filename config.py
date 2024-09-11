@@ -50,7 +50,7 @@ class Config:
         if self.use_proxy:
             self.rotating_proxies = self.config.getboolean('proxy', 'rotating_proxies', fallback=False)
             if self.rotating_proxies:
-                self.ip = self.config.get('proxy', 'ip', fallback=None)
+                self.host = self.config.get('proxy', 'host', fallback=None)
                 self.port = self.config.get('proxy', 'port', fallback=None)
                 self.proxy_username = self.config.get('proxy', 'username', fallback=None)
                 self.proxy_password = self.config.get('proxy', 'password', fallback=None)
@@ -70,7 +70,7 @@ class Config:
             self.search_page_link = self.config.get('search mode', 'search_page_link', fallback=None)
 
         self.validate()
-        logging.info("Config loaded successfully.")
+        # logging.info("Config loaded successfully.")
 
     def _get_optional_int(self, section, option):
         """Returns the value as an integer if present and non-zero, or None if empty or zero."""
@@ -118,7 +118,7 @@ class Config:
             exit()
 
         if self.use_proxy:
-            if self.rotating_proxies and None in [self.ip, self.port, self.username, self.password]:
+            if self.rotating_proxies and None in [self.host, self.port, self.proxy_username, self.proxy_password]:
                 logger.error("All the fields for 'rotating_proxies' must be provided.")
                 exit()
             if not self.rotating_proxies and not self.proxy_file:
@@ -130,6 +130,14 @@ class Config:
 
         if self.search_mode and None in [self.search_page_link, self.video_link, self.search_keywords]:
             logger.error("All the fields for 'search_mode' must be provided.")
+            exit()
+
+        if max(self.likes, self.comments, self.subscribes) < self.range:
+            logger.error("Range must be greater than or equal to the maximum number of actions.")
+            exit()
+
+        if max(self.likes, self.comments, self.subscribes, self.shares) < self.accounts:
+            logger.error("Accounts must be greater than or equal to the maximum number of actions. Keep higher limit of all actions less than or equal to the higher limit of accounts.")
             exit()
 
         self.likes = self.likes * self.range

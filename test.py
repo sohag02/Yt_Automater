@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO,
 # print(acc)
 
 # for a in acc:
-with setup_driver(profile="olivia.davis.20223@gmail.com", headless=False) as driver:
+with setup_driver(profile="olivia.davis.20223@gmail.com", headless=False, proxy='internal/proxy_auth_extension.zip') as driver:
     driver.get("https://www.youtube.com")
     # search_video(driver, "https://www.youtube.com/results?search_query=telegram&sp=CAMSBggDEAEYAw%253D%253D", "https://www.youtube.com/watch?v=Ati8ls1t1Qs", 'telegram')
     # change_profile_pic(driver, f"{os.getcwd()}\\Photos\\test.png")

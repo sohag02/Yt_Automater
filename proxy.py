@@ -1,3 +1,4 @@
+import os
 import requests
 import threading
 import logging
@@ -20,23 +21,35 @@ def verify_proxy(proxy, output_path):
         logging.debug(f"Failed proxy: {proxy}")
 
 def check_proxies(file_path, output_path="working_proxies.txt"):
-    logging.info("Checking Proxies...")
+    logging.info(f"Checking Proxies from {file_path}...")
+    path = f'internal/{output_path}'
+    # verify if file exists
+    if not os.path.exists(path):
+        # create file if it doesn't exist
+        with open(path, "w") as f:
+            f.write("")
     with open(file_path, "r") as file:
         proxies = [line.strip() for line in file.readlines()]
     
     threads = []
 
     for proxy in proxies:
-        thread = threading.Thread(target=verify_proxy, args=(proxy, output_path))
+        thread = threading.Thread(target=verify_proxy, args=(proxy, path))
         thread.start()
         threads.append(thread)
 
     for thread in threads:
         thread.join()
 
-    logging.info(f"Successfully saved working proxies in {output_path}")
+    # check no. of working proxies
+    with open(path, "r") as f:
+        working_proxies = f.readlines()
+    if len(working_proxies) == 0:
+        logging.error("No working proxies found")
+        return
+    logging.info(f"Successfully saved {len(working_proxies)} working proxies in {path}")
 
-def get_proxy(file="working_proxies.txt"):
+def get_proxy(file="internal/working_proxies.txt"):
     # get a proxy and delete it from the file
     with open(file, "r") as f:
         proxies = f.readlines()
