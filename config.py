@@ -132,14 +132,6 @@ class Config:
             logger.error("All the fields for 'search_mode' must be provided.")
             exit()
 
-        if max(self.likes, self.comments, self.subscribes) < self.range:
-            logger.error("Range must be greater than or equal to the maximum number of actions.")
-            exit()
-
-        if max(self.likes, self.comments, self.subscribes, self.shares) < self.accounts:
-            logger.error("Accounts must be greater than or equal to the maximum number of actions. Keep higher limit of all actions less than or equal to the higher limit of accounts.")
-            exit()
-
         self.likes = self.likes * self.range
         self.comments = self.comments * self.range
         
