@@ -30,6 +30,7 @@ if config.use_proxy:
         # proxy = None
     else:
         check_proxies(config.proxy_file)
+        
 
 def get_proxies():
     with open("internal/working_proxies.txt", "r") as f:
@@ -149,14 +150,14 @@ def main():
     if config.use_proxy and not config.rotating_proxies:
         if len(proxies) == 0:
             logging.error("No Working Proxies found. Use valid proxies or disable proxy.")
-            exit()
+            end_script()
         proxy = proxies[0].strip()
         proxies.pop(0)
 
     if config.monitor_mode:
         with setup_driver(headless=config.headless, proxy=proxy) as driver:
             monitor(driver, config.username, config.watch_time, accounts, threads=config.threads)
-        exit()
+        end_script()
 
     if config.username or config.search_mode:
         with setup_driver(headless=config.headless, proxy=proxy) as driver:
@@ -176,23 +177,33 @@ def main():
                     if longs: links.extend(longs)
         if not links:
             logging.error(f"Failed to Fetch Links for {config.username}. Try restarting the script")
-            exit()
+            end_script()
         logging.info(f"Assigning Random Accounts to {len(links)} Videos")
         max_action = int(max(config.likes/config.range, config.comments/config.range, config.subscribes))
         account_map = assign_accounts(links, max_action)
+        print(account_map)
+        print(links)
         for i in range(0, len(accounts), config.threads):
             logging.info(f"Processing batch {i} to {i+config.threads}")
             creds = accounts[i:i+config.threads]
             args = [(cred, links, account_map) for cred in creds]
             process_batch(process_videos, args, size=config.threads)
-        exit()
+        end_script()
 
     if config.livestream_link:
         logging.info("Joining Livestream : " + config.livestream_link)
         creds = accounts
         args = [(cred, [config.livestream_link]) for cred in creds]
         process_batch(process_videos, args, size=config.accounts)
-        exit()
+        end_script()
+
+def end_script():
+    global likes, comments, subscribes
+    logging.info("Likes delivered: " + str(likes))
+    logging.info("Comments delivered: " + str(comments))
+    logging.info("Subscribes delivered: " + str(subscribes))
+    logging.info("SCRIPT ENDED")
+    exit()
   
 
 if __name__ == "__main__":
@@ -200,6 +211,3 @@ if __name__ == "__main__":
     logging.info(f"Threads: {config.threads}")
     logging.info(f"Accounts: {len(accounts)}")
     main()
-    logging.info("Likes delivered: " + str(likes))
-    logging.info("Comments delivered: " + str(comments))
-    logging.info("Subscribes delivered: " + str(subscribes))
